@@ -3,7 +3,7 @@ import pygame
 from random import randint
 import sys
 import math
-#from pygame.locals import *
+import time
 
 BLACK = (0, 0, 0)
 RED = (252, 104, 82)
@@ -38,9 +38,9 @@ l_start = 100
 line = [[l_x, l_start], [l_x, l_start+l_height]]
 pygame.draw.line(screen, GREEN, line[0], line[1], 3)
 
-def showText(text='hello'):
+def showText(text='hello', coo=(width-200, 50)):
   img = font.render(text, True, GREEN)
-  screen.blit(img, (width-200, 100))
+  screen.blit(img, coo)
 
 # Move circle
 def move(x, y):
@@ -52,10 +52,15 @@ def moveline(count=0):
   line[1][1] += count
   pygame.draw.line(screen, GREEN, line[0], line[1], 3)
 
+def gameOver():
+  screen.fill(BLACK)
+  showText('Game over!', (width//2-50, height//2))
+  pygame.display.update()
+
 while 1:
   # Clear screen
   screen.fill(BLACK)
-  showText()
+  showText('Score: {0}'.format(score))
   # Change circle position
   if (c_x + radius >= width) or (c_x <= 0): 
     x_speed = -x_speed
@@ -63,7 +68,7 @@ while 1:
     y_speed = -y_speed
   # Checking for contact between the ball and the line
   if math.isclose(c_x, l_x + radius, abs_tol=3) and c_y >= line[0][1] and c_y <= line[1][1]:
-    #score += 1
+    score += 1
     #y_speed = -y_speed
     x_speed = -x_speed
   c_x += x_speed
@@ -78,19 +83,24 @@ while 1:
   clock.tick(60)
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
-      pygame.quit()
-      sys.exit()
+      gameOver() 
+      break
     # Move platform on button click
     if event.type == pygame.KEYDOWN:
       lastValue = 0
       isKeyDown = True
       pressed = pygame.key.get_pressed()
       if pressed[pygame.K_w]:
-        lastValue = -7
+        lastValue = -10
         moveline(lastValue)  
       if pressed[pygame.K_s]:
-        lastValue = 7
+        lastValue = 10
         moveline(lastValue)  
     if event.type == pygame.KEYUP:
       isKeyDown = False
+  else: continue
+  break
 
+time.sleep(1)
+pygame.quit()
+sys.exit()
