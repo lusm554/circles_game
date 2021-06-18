@@ -2,43 +2,95 @@
 import pygame
 from random import randint
 import sys
+import math
+#from pygame.locals import *
 
 BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
+RED = (252, 104, 82)
+GREEN = (144, 255, 92)
 
+pygame.init()
 clock = pygame.time.Clock()
 SIZE = width, height = 800, 600
 screen = pygame.display.set_mode(SIZE)
 pygame.display.set_caption('Circle game')
+score = 0
+
+# Text settings
+font = pygame.font.SysFont(None, 38) 
 
 # Circle settings
-x = randint(50, width-60)
-y = randint(50, height-60)
-x_speed = 2.5
-y_speed = 2.5
+c_x = randint(50, width-60)
+c_y = randint(50, height-60)
+x_speed = 10
+y_speed = 10
 
 radius = 30
 center = [50, 50]
-circle = pygame.draw.circle(screen, WHITE, center, radius)
+pygame.draw.circle(screen, RED, center, radius)
+
+# Line settings
+isKeyDown = False
+lastValue = 0
+l_x = 50
+l_height = 200
+l_start = 100
+line = [[l_x, l_start], [l_x, l_start+l_height]]
+pygame.draw.line(screen, GREEN, line[0], line[1], 3)
+
+def showText(text='hello'):
+  img = font.render(text, True, GREEN)
+  screen.blit(img, (width-200, 100))
 
 # Move circle
 def move(x, y):
-  pygame.draw.circle(screen, WHITE, (x, y), radius)
+  pygame.draw.circle(screen, RED, (x, y), radius)
+
+# Move line
+def moveline(count=0):
+  line[0][1] += count
+  line[1][1] += count
+  pygame.draw.line(screen, GREEN, line[0], line[1], 3)
 
 while 1:
   # Clear screen
   screen.fill(BLACK)
+  showText()
   # Change circle position
-  if (x + radius >= width) or (x <= 0): 
+  if (c_x + radius >= width) or (c_x <= 0): 
     x_speed = -x_speed
-  if (y + radius >= height) or (y <= 0): 
+  if (c_y + radius >= height) or (c_y <= 0): 
     y_speed = -y_speed
-  x += x_speed
-  y += y_speed
-  move(x, y)
+  # Checking for contact between the ball and the line
+  if math.isclose(c_x, l_x + radius, abs_tol=3) and c_y >= line[0][1] and c_y <= line[1][1]:
+    #score += 1
+    #y_speed = -y_speed
+    x_speed = -x_speed
+  c_x += x_speed
+  c_y += y_speed
+  move(c_x, c_y)
+  # If key (w or s) down keep moving line.
+  if isKeyDown:
+    moveline(lastValue)
+  else:
+    moveline()
   pygame.display.update()
   clock.tick(60)
   for event in pygame.event.get():
     if event.type == pygame.QUIT:
       pygame.quit()
       sys.exit()
+    # Move platform on button click
+    if event.type == pygame.KEYDOWN:
+      lastValue = 0
+      isKeyDown = True
+      pressed = pygame.key.get_pressed()
+      if pressed[pygame.K_w]:
+        lastValue = -7
+        moveline(lastValue)  
+      if pressed[pygame.K_s]:
+        lastValue = 7
+        moveline(lastValue)  
+    if event.type == pygame.KEYUP:
+      isKeyDown = False
+
